@@ -33,7 +33,3 @@ python3 scripts/cpi_sweden.py
 Default outputs:
 - `data/share_cpi_wide.csv`
 - `figures/index.html`
-
-## Notes
-- Uses SCB API endpoint `KPI2020COICOP2M`.
-- Excludes category `00` (total basket) from share chart.
