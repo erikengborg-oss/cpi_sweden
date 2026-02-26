@@ -5,6 +5,8 @@ This project fetches yearly CPI basket weights from Statistics Sweden (SCB) for 
 - A wide CSV table with COICOP categories by year
 - An interactive HTML chart of category shares over time
 
+Live chart: [https://erikengborg-oss.github.io/cpi_sweden/](https://erikengborg-oss.github.io/cpi_sweden/)
+
 Main files and folders:
 
 - `scripts/cpi_sweden.py` - data fetch + transform + export
