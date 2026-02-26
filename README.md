@@ -29,12 +29,11 @@ pip install -r requirements.txt
 
 ## Run
 ```bash
-python3 scripts/cpi_weights_from_scb_api.py
-```
+python3 scripts/cpi_sweden.py
 
 Default outputs:
-- `data/scb_cpi_weights_major_wide.csv`
-- `figures/scb_weights_share_stacked_by_year_major_categories.html`
+- `data/share_cpi_wide.csv`
+- `figures/index.html`
 
 ## Notes
 - Uses SCB API endpoint `KPI2020COICOP2M`.
