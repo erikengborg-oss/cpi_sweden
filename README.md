@@ -1,6 +1,6 @@
 ## Project structure
 
-This project fetches yearly CPI basket weights from Statistics Sweden (SCB) and produces:
+This project fetches yearly CPI basket weights from Statistics Sweden (SCB) for **1980-2026** and produces:
 
 - A wide CSV table with COICOP categories by year
 - An interactive HTML chart of category shares over time
@@ -11,7 +11,7 @@ Main files and folders:
 - `data/` - generated CSV output
 - `figures/` - generated HTML chart
 
-## Key takeaways (1980-2026)
+## Key takeaways
 - Housing (04) dominates throughout. It's the largest CPI basket category in every year.
 - Food and non-alcoholic beverages (01) show the biggest decline: 20.10% -> 13.92% (-6.18 percentage points).
 - Alcoholic beverages & tobacco (02) and Clothing & footwear (03) also decline: -4.30 pp and -3.62 pp.
