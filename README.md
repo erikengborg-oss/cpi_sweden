@@ -8,6 +8,13 @@ Fetch yearly CPI basket weights from SCB and export:
 - `data/` (generated CSV)
 - `figures/` (generated HTML)
 
+## Key takeaways (1980-2026)
+- Housing (04) dominates throughout. It's the largest CPI basket category in every year.
+- Food and non-alcoholic beverages (01) show the biggest decline: 20.10% -> 13.92% (-6.18 percentage points).
+- Alcoholic beverages & tobacco (02) and Clothing & footwear (03) also decline: -4.30 pp and -3.62 pp.
+- Restaurants & accommodation services (11) increase the most: 4.05% -> 8.40% (+4.35 pp).
+- Recreation, sport and culture (09) and Health (06) both trend upward: +1.79 pp and +1.74 pp.
+
 ## Setup
 ```bash
 python3 -m venv .venv
