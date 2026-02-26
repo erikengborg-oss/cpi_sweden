@@ -1,12 +1,15 @@
 ## Project structure
-Fetch yearly CPI basket weights from SCB and export:
-- CSV wide table by category and year
-- Interactive stacked-share HTML chart
 
-  
-- `scripts/cpi_weights_from_scb_api.py`
-- `data/` (generated CSV)
-- `figures/` (generated HTML)
+This project fetches yearly CPI basket weights from Statistics Sweden (SCB) and produces:
+
+- A wide CSV table with COICOP categories by year
+- An interactive HTML chart of category shares over time
+
+Main files and folders:
+
+- `scripts/cpi_sweden.py` - data fetch + transform + export
+- `data/` - generated CSV output
+- `figures/` - generated HTML chart
 
 ## Key takeaways (1980-2026)
 - Housing (04) dominates throughout. It's the largest CPI basket category in every year.
