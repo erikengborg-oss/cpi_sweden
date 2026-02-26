@@ -11,7 +11,6 @@ Main files and folders:
 
 - `scripts/cpi_sweden.py` - data fetch + transform + export
 - `data/` - generated CSV output
-- `figures/` - generated HTML chart
 
 ## Key takeaways
 - Housing (04) dominates throughout. It's the largest CPI basket category in every year.
