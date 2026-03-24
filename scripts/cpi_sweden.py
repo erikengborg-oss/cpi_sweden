@@ -120,9 +120,9 @@ def save_stacked_share_html(wide: pd.DataFrame, out_html: Path) -> None:
     palette = MUTED_PALETTE
 
     fig = go.Figure()
-    for idx, row in wide.iterrows():
-        label = f"{row['code']} {row['label']}"
-        vals = share_pct.loc[idx, year_cols].fillna(0.0).values
+    for idx, row in enumerate(wide.itertuples(index=False)):
+        label = f"{row.code} {row.label}"
+        vals = share_pct.iloc[idx][year_cols].fillna(0.0).values
         color = palette[idx % len(palette)]
         fig.add_trace(
             go.Bar(
