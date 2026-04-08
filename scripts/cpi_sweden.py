@@ -68,9 +68,18 @@ def json_stat2_to_df(payload: dict) -> pd.DataFrame:
         ordered = [k for k, _ in sorted(idx.items(), key=lambda kv: kv[1])]
         dim_values.append(ordered)
 
-    combos = itertools.product(*dim_values)
+    expected_rows = 1
+    for values in dim_values:
+        expected_rows *= len(values)
+
+    payload_values = payload["value"]
+    if len(payload_values) != expected_rows:
+        raise ValueError(
+            f"Unexpected JSON-stat payload size: expected {expected_rows} values, got {len(payload_values)}."
+        )
+
     rows = []
-    for combo, value in zip(combos, payload["value"]):
+    for combo, value in zip(itertools.product(*dim_values), payload_values):
         rec = {dims[i]: combo[i] for i in range(len(dims))}
         for i, dim in enumerate(dims):
             rec[f"{dim}_label"] = dim_labels.get(dim, {}).get(combo[i], combo[i])
@@ -116,7 +125,15 @@ def build_wide_table(df: pd.DataFrame, from_year: int, to_year: int) -> pd.DataF
 # Save interactive share chart as HTML.
 def save_stacked_share_html(wide: pd.DataFrame, out_html: Path) -> None:
     year_cols = [c for c in wide.columns if isinstance(c, int)]
-    share_pct = wide[year_cols].div(wide[year_cols].sum(axis=0), axis=1) * 100.0
+    if not year_cols:
+        raise ValueError("No year columns available for chart export.")
+
+    totals = wide[year_cols].sum(axis=0, min_count=1)
+    invalid_years = [str(year) for year, total in totals.items() if pd.isna(total) or total <= 0]
+    if invalid_years:
+        raise ValueError(f"Cannot compute yearly shares for invalid totals: {', '.join(invalid_years)}.")
+
+    share_pct = wide[year_cols].div(totals, axis=1) * 100.0
     palette = MUTED_PALETTE
 
     fig = go.Figure()
