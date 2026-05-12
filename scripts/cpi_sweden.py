@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import itertools
 from pathlib import Path
 
@@ -224,7 +225,10 @@ def run(
         raise ValueError("The weights table is empty after filtering.")
 
     # December annual changes give the full-year inflation figure for each category.
-    changes_query = build_query(from_year=from_year, to_year=to_year, contents_code=CONTENTS_CODE_ANNUAL_CHANGE, month="M12")
+    # Cap to_year so we never request a December that hasn't been published yet.
+    today = datetime.date.today()
+    changes_to_year = min(to_year, today.year if today.month == 12 else today.year - 1)
+    changes_query = build_query(from_year=from_year, to_year=changes_to_year, contents_code=CONTENTS_CODE_ANNUAL_CHANGE, month="M12")
     changes_resp = requests.post(api_url, json=changes_query, timeout=timeout)
     changes_resp.raise_for_status()
     changes_wide = build_wide_table(json_stat2_to_df(changes_resp.json()), from_year=from_year, to_year=to_year)
