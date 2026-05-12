@@ -1,35 +1,18 @@
-## Project structure
+A small project where I fetch CPI basket weights from SCB and visualize how the composition has changed since 1980. Also shows which categories actually drove inflation each year.
 
-This project fetches yearly CPI basket weights from Statistics Sweden (SCB) for **1980-2026** and produces:
+**Charts:**
+- [Basket shares over time](https://erikengborg-oss.github.io/cpi_sweden/)
+- [Inflation contributions by category](https://erikengborg-oss.github.io/cpi_sweden/contributions.html)
 
-- A wide CSV table with COICOP categories by year
-- An interactive HTML chart of category shares over time
+Updated automatically every month.
 
-Live chart: [https://erikengborg-oss.github.io/cpi_sweden/](https://erikengborg-oss.github.io/cpi_sweden/)
+## Run locally
 
-Main files and folders:
-
-- `scripts/cpi_sweden.py` - data fetch + transform + export
-- `data/` - generated CSV output
-
-## Key takeaways
-- Housing (04) dominates throughout. It's the largest CPI basket category in every year.
-- Food and non-alcoholic beverages (01) show the biggest decline: 20.10% -> 13.92% (-6.18 percentage points).
-- Alcoholic beverages & tobacco (02) and Clothing & footwear (03) also decline: -4.30 pp and -3.62 pp.
-- Restaurants & accommodation services (11) increase the most: 4.05% -> 8.40% (+4.35 pp).
-- Recreation, sport and culture (09) and Health (06) both trend upward: +1.79 pp and +1.74 pp.
-
-## Setup
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+python3 scripts/cpi_sweden.py
 ```
 
-## Run
-```bash
-python3 scripts/cpi_sweden.py
-
-Default outputs:
-- `data/share_cpi_wide.csv`
-- `figures/index.html`
+Outputs `figures/index.html` and `figures/contributions.html`.
