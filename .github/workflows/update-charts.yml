@@ -1,0 +1,32 @@
+name: Update CPI charts
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'  # 1st of every month at 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate charts
+        run: |
+          python scripts/cpi_sweden.py \
+            --out-html figures/index.html \
+            --out-html-contrib figures/contributions.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./figures
