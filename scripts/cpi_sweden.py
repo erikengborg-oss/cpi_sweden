@@ -117,7 +117,7 @@ def build_wide_table(df: pd.DataFrame, from_year: int, to_year: int) -> pd.DataF
     )
 
     wide = out.pivot(index="code", columns="year", values="value").sort_index().reset_index()
-    wide["label"] = wide["code"].map(labels).fillna(wide["code"].map(COICOP_LABELS_EN)).fillna(wide["code"])
+    wide["label"] = wide["code"].map(COICOP_LABELS_EN).fillna(wide["code"].map(labels)).fillna(wide["code"])
 
     year_cols = sorted([c for c in wide.columns if isinstance(c, int)])
     return wide[["code", "label"] + year_cols]
@@ -143,6 +143,8 @@ def save_contribution_html(contrib: pd.DataFrame, out_html: Path) -> None:
     if not year_cols:
         raise ValueError("No year columns available for chart export.")
 
+    total_by_year = contrib[year_cols].sum(axis=0)
+
     fig = go.Figure()
     for (_, share_row), row, color in zip(contrib.set_index("code")[year_cols].iterrows(), contrib.itertuples(index=False), itertools.cycle(MUTED_PALETTE)):
         label = f"{row.code} {row.label}"
@@ -156,6 +158,17 @@ def save_contribution_html(contrib: pd.DataFrame, out_html: Path) -> None:
                 hovertemplate=f"Year: %{{x}}<br>Category: {label}<br>Contribution: %{{y:.2f}} pp<extra></extra>",
             )
         )
+
+    fig.add_trace(
+        go.Scatter(
+            x=year_cols,
+            y=total_by_year[year_cols].values,
+            name="Total CPI",
+            mode="lines+markers",
+            line=dict(color="black", width=2),
+            hovertemplate="Year: %{x}<br>Total CPI: %{y:.2f}%<extra></extra>",
+        )
+    )
 
     fig.update_layout(
         title="Category contributions to CPI inflation (percentage points)",
