@@ -163,10 +163,10 @@ def save_contribution_html(contrib: pd.DataFrame, out_html: Path) -> None:
         go.Scatter(
             x=year_cols,
             y=total_by_year[year_cols].values,
-            name="Total CPI",
+            name="Sum of contributions",
             mode="lines+markers",
             line=dict(color="black", width=2),
-            hovertemplate="Year: %{x}<br>Total CPI: %{y:.2f}%<extra></extra>",
+            hovertemplate="Year: %{x}<br>Sum of contributions: %{y:.2f}%<extra></extra>",
         )
     )
 
