@@ -130,7 +130,7 @@ def build_contribution_table(weights_wide: pd.DataFrame, changes_wide: pd.DataFr
 
     w = weights_wide.set_index("code")[common_years]
     c = changes_wide.set_index("code")[common_years]
-    contrib = (w / 100.0) * c
+    contrib = (w / 10000.0) * c
 
     contrib = contrib.reset_index()
     label_map = weights_wide.set_index("code")["label"]
