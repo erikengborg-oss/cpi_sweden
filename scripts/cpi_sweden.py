@@ -7,7 +7,6 @@ import plotly.graph_objects as go
 import requests
 
 
-# API
 API_URL = "https://api.scb.se/OV0104/v1/doris/en/ssd/START/PR/PR0101/PR0101A/KPI2020COICOP2M"
 
 COICOP_LABELS_EN = {
@@ -44,6 +43,7 @@ MUTED_PALETTE = [
 
 
 def build_query(from_year: int, to_year: int, contents_code: str = "0000080F") -> dict:
+    # SCB publishes basket weights once per year; January is the reference month.
     years = [f"{y}M01" for y in range(from_year, to_year + 1)]
     return {
         "query": [
@@ -55,7 +55,6 @@ def build_query(from_year: int, to_year: int, contents_code: str = "0000080F") -
     }
 
 
-# Convert json-stat2 payload into a flat long table.
 def json_stat2_to_df(payload: dict) -> pd.DataFrame:
     dims = payload["id"]
     dim_values: list[list[str]] = []
@@ -88,7 +87,6 @@ def json_stat2_to_df(payload: dict) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-# Build a yearly wide table by COICOP code.
 def build_wide_table(df: pd.DataFrame, from_year: int, to_year: int) -> pd.DataFrame:
     rename_map = {"VaruTjanstegrupp": "code", "Tid": "period"}
     if "VaruTjanstegrupp_label" in df.columns:
@@ -122,7 +120,6 @@ def build_wide_table(df: pd.DataFrame, from_year: int, to_year: int) -> pd.DataF
     return wide[["code", "label"] + year_cols]
 
 
-# Save interactive share chart as HTML.
 def save_stacked_share_html(wide: pd.DataFrame, out_html: Path) -> None:
     year_cols = [c for c in wide.columns if isinstance(c, int)]
     if not year_cols:
@@ -134,13 +131,11 @@ def save_stacked_share_html(wide: pd.DataFrame, out_html: Path) -> None:
         raise ValueError(f"Cannot compute yearly shares for invalid totals: {', '.join(invalid_years)}.")
 
     share_pct = wide[year_cols].div(totals, axis=1) * 100.0
-    palette = MUTED_PALETTE
 
     fig = go.Figure()
-    for idx, row in enumerate(wide.itertuples(index=False)):
+    for (_, share_row), row, color in zip(share_pct.iterrows(), wide.itertuples(index=False), itertools.cycle(MUTED_PALETTE)):
         label = f"{row.code} {row.label}"
-        vals = share_pct.iloc[idx][year_cols].fillna(0.0).values
-        color = palette[idx % len(palette)]
+        vals = share_row[year_cols].fillna(0.0).values
         fig.add_trace(
             go.Bar(
                 x=year_cols,
@@ -163,7 +158,6 @@ def save_stacked_share_html(wide: pd.DataFrame, out_html: Path) -> None:
     fig.write_html(out_html, include_plotlyjs="cdn")
 
 
-# Run pipeline: fetch -> transform -> export CSV + HTML.
 def run(
     out_csv: Path,
     out_html: Path,
