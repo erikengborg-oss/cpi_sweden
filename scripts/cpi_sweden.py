@@ -13,22 +13,6 @@ API_URL = "https://api.scb.se/OV0104/v1/doris/en/ssd/START/PR/PR0101/PR0101A/KPI
 CONTENTS_CODE_WEIGHTS = "0000080F"
 CONTENTS_CODE_ANNUAL_CHANGE = "00000809"
 
-COICOP_LABELS_EN = {
-    "01": "Food and non-alcoholic beverages",
-    "02": "Alcoholic beverages and tobacco",
-    "03": "Clothing and footwear",
-    "04": "Housing",
-    "05": "Furnishings and household goods",
-    "06": "Health",
-    "07": "Transport",
-    "08": "Communication",
-    "09": "Recreation and culture",
-    "10": "Education",
-    "11": "Restaurants and hotels",
-    "12": "Miscellaneous goods and services",
-    "13": "Other",
-}
-
 MUTED_PALETTE = [
     "#4E79A7",
     "#A0CBE8",
@@ -117,7 +101,8 @@ def build_wide_table(df: pd.DataFrame, from_year: int, to_year: int) -> pd.DataF
     )
 
     wide = out.pivot(index="code", columns="year", values="value").sort_index().reset_index()
-    wide["label"] = wide["code"].map(COICOP_LABELS_EN).fillna(wide["code"].map(labels)).fillna(wide["code"])
+    # Use SCB's own labels (COICOP 2018), converted from upper case to sentence case.
+    wide["label"] = wide["code"].map(labels).str.capitalize().fillna(wide["code"])
 
     year_cols = sorted([c for c in wide.columns if isinstance(c, int)])
     return wide[["code", "label"] + year_cols]
@@ -146,9 +131,9 @@ def save_contribution_html(contrib: pd.DataFrame, out_html: Path) -> None:
     total_by_year = contrib[year_cols].sum(axis=0)
 
     fig = go.Figure()
-    for (_, share_row), row, color in zip(contrib.set_index("code")[year_cols].iterrows(), contrib.itertuples(index=False), itertools.cycle(MUTED_PALETTE)):
-        label = f"{row.code} {row.label}"
-        vals = share_row[year_cols].fillna(0.0).values
+    for (_, row), color in zip(contrib.iterrows(), itertools.cycle(MUTED_PALETTE)):
+        label = f"{row['code']} {row['label']}"
+        vals = row[year_cols].astype(float).fillna(0.0).values
         fig.add_trace(
             go.Bar(
                 x=year_cols,
@@ -194,8 +179,8 @@ def save_stacked_share_html(wide: pd.DataFrame, out_html: Path) -> None:
     share_pct = wide[year_cols].div(totals, axis=1) * 100.0
 
     fig = go.Figure()
-    for (_, share_row), row, color in zip(share_pct.iterrows(), wide.itertuples(index=False), itertools.cycle(MUTED_PALETTE)):
-        label = f"{row.code} {row.label}"
+    labels = wide["code"] + " " + wide["label"]
+    for label, (_, share_row), color in zip(labels, share_pct.iterrows(), itertools.cycle(MUTED_PALETTE)):
         vals = share_row[year_cols].fillna(0.0).values
         fig.add_trace(
             go.Bar(
@@ -230,7 +215,10 @@ def run(
     contents_code: str,
 ) -> None:
     # SCB publishes basket weights once per year; January is the reference month.
-    weights_query = build_query(from_year=from_year, to_year=to_year, contents_code=contents_code, month="M01")
+    # January figures are published in mid-February, so only include the current year from March.
+    today = datetime.date.today()
+    weights_to_year = min(to_year, today.year if today.month >= 3 else today.year - 1)
+    weights_query = build_query(from_year=from_year, to_year=weights_to_year, contents_code=contents_code, month="M01")
     weights_resp = requests.post(api_url, json=weights_query, timeout=timeout)
     weights_resp.raise_for_status()
     wide = build_wide_table(json_stat2_to_df(weights_resp.json()), from_year=from_year, to_year=to_year)
@@ -239,7 +227,6 @@ def run(
 
     # December annual changes give the full-year inflation figure for each category.
     # Cap to_year so we never request a December that hasn't been published yet.
-    today = datetime.date.today()
     changes_to_year = min(to_year, today.year if today.month == 12 else today.year - 1)
     changes_query = build_query(from_year=from_year, to_year=changes_to_year, contents_code=CONTENTS_CODE_ANNUAL_CHANGE, month="M12")
     changes_resp = requests.post(api_url, json=changes_query, timeout=timeout)
@@ -260,12 +247,12 @@ def run(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fetch CPI weights from SCB API and export CSV + HTML.")
-    base_dir = Path.home() / "python" / "kpi_scb"
+    base_dir = Path(__file__).resolve().parent.parent
     parser.add_argument("--out-csv", type=Path, default=base_dir / "data" / "share_cpi_wide.csv")
     parser.add_argument("--out-html", type=Path, default=base_dir / "figures" / "index.html")
     parser.add_argument("--out-html-contrib", type=Path, default=base_dir / "figures" / "contributions.html")
     parser.add_argument("--from-year", type=int, default=1980)
-    parser.add_argument("--to-year", type=int, default=2026)
+    parser.add_argument("--to-year", type=int, default=datetime.date.today().year)
     parser.add_argument("--timeout", type=int, default=60)
     parser.add_argument("--api-url", type=str, default=API_URL)
     parser.add_argument("--contents-code", type=str, default=CONTENTS_CODE_WEIGHTS)
